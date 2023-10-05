@@ -32,6 +32,12 @@ class DBStorage():
         if env == "test":
             Base.metadata.drop_all(self.__engine)
 
+    def reload(self):
+        """ create table and database """
+        Base.metadata.create_all(self.__engine)
+        Session = scoped_session(sessionmaker(bind=self.__engine, expire_on_commit=False))
+        self.__session = Session()
+
     def all(sel, cls=None):
         """class query"""
         result = {}
@@ -59,10 +65,3 @@ class DBStorage():
         if obj:
             self.__name.delete(obj)
         self.save()
-    
-    def reload(self):
-        """ create table and database """
-        Base.metadata.create_all(self.__engine)
-        Session = sessionmaker(bind=engine, expire_on_commit=False)
-        scoped_Session = scoped_session(Session)
-        self.__session = scoped_session(Session)
