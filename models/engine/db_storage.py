@@ -1,24 +1,24 @@
 #!/usr/bin/python3
-"""Module contains database engine"""
-
-from models.city import City
-from models.amenity import Amenity
-from models.review import Review
-from models.place import Place
-from models.user import User
-from models.state import State
-from models.base_model import Base
-from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy import (create_engine)
+""" database storage module"""
+from sqlalchemy import create_engine
 from os import getenv
-from models.base_model import BaseModel
+from sqlalchemy.orm import scoped_session, sessionmaker
+from models.base_model import BaseModel, Base
+from models.amenity import Amenity
+from models.user import User
+from models.city import City
+from models.state import State
+from models.place import Place
+from models.review import Review
 
-class DBStorage():
-    """new engine"""
+
+class DBStorage:
+    """ dabase storage class"""
     __engine = None
     __session = None
 
     def __init__(self):
+<<<<<<< HEAD
         """public instance"""
         user = getenv('HBNB_MYSQL_USER')
         passwd = getenv('HBNB_MYSQL_PWD')
@@ -42,26 +42,72 @@ class DBStorage():
         """class query"""
         result = {}
         classes_to_query = [cls] if cls else [User, Place, State, City, Amenity, Review]
+=======
+        """ init module"""
+        dialect = 'mysql'
+        driver = 'mysqldb'
+        user = getenv("HBNB_MYSQL_USER")
+        password = getenv("HBNB_MYSQL_PWD")
+        host = getenv("HBNB_MYSQL_HOST")
+        database = getenv("HBNB_MYSQL_DB")
+        conn = "{}+{}://{}:{}@{}/{}".format(
+                dialect,
+                driver,
+                user,
+                password,
+                host,
+                database)
+        self.__engine = create_engine(conn, pool_pre_ping=True)
+        if getenv("HBNB_ENV") == "test":
+            Base.metadata.drop_all(bind=self.__engine)
+>>>>>>> ee6bc2a7072293464cf3777b828863e8745d746c
 
-        for queried_cls in classes_to_query:
-            for obj in self.__session.query(queried_cls).all():
-                class_name = obj.__class__.__name__
-                key_name = f"{class_name}.{obj.id}"
-                result[key_name] = obj
+    def all(self, cls=None):
+        """ """
 
-        return result
+        dic = {}
+        if cls is None:
+            objects_list = self.__session.query(User).all()
+            objects_list.extend(self.__session.query(State).all())
+            objects_list.extend(self.__session.query(City).all())
+            objects_list.extend(self.__session.query(Amenity).all())
+            objects_list.extend(self.__session.query(Place).all())
+            objects_list.extend(self.__session.query(Review).all())
+        else:
+            if type(cls) is str:
+                cls = eval(cls)
+            objects_list = self.__session.query(cls).all()
 
+        for obj in objects_list:
+            key = "{}.{}".format(type(obj).__name__, obj.id)
+            dic[key] = obj
+        return (dic)
 
     def new(self, obj):
-        """add obj to database"""
-        if obj:
-            self.__session.add(obj)
+        """ add new database """
+        self.__session.add(obj)
+
     def save(self):
-        """commit changes"""
+        """ save session """
         self.__session.commit()
 
     def delete(self, obj=None):
         """delete current database"""
         if obj:
+<<<<<<< HEAD
             self.__name.delete(obj)
         self.save()
+=======
+            self.__session.delete(obj)
+
+    def reload(self):
+        """ reload """
+        Base.metadata.create_all(self.__engine)
+        Session = sessionmaker(bind=self.__engine, expire_on_commit=False)
+        session = scoped_session(Session)
+        self.__session = session()
+
+    def close(self):
+        """ close session """
+        self.__session.close()
+>>>>>>> ee6bc2a7072293464cf3777b828863e8745d746c
