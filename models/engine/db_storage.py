@@ -18,6 +18,31 @@ class DBStorage:
     __session = None
 
     def __init__(self):
+<<<<<<< HEAD
+        """public instance"""
+        user = getenv('HBNB_MYSQL_USER')
+        passwd = getenv('HBNB_MYSQL_PWD')
+        host = getenv('HBNB_MYSQL_HOST')
+        db = getenv('HBNB_MYSQL_DB')
+        env = getenv('HBNB_ENV')
+
+        self.__engine = create_engine('mysql+mysqldb://{}:{}@{}/{}'.format(
+            user, passwd, host, db), pool_pre_ping=True)
+
+        if env == "test":
+            Base.metadata.drop_all(self.__engine)
+
+    def reload(self):
+        """ create table and database """
+        Base.metadata.create_all(self.__engine)
+        Session = scoped_session(sessionmaker(bind=self.__engine, expire_on_commit=False))
+        self.__session = Session()
+
+    def all(sel, cls=None):
+        """class query"""
+        result = {}
+        classes_to_query = [cls] if cls else [User, Place, State, City, Amenity, Review]
+=======
         """ init module"""
         dialect = 'mysql'
         driver = 'mysqldb'
@@ -35,6 +60,7 @@ class DBStorage:
         self.__engine = create_engine(conn, pool_pre_ping=True)
         if getenv("HBNB_ENV") == "test":
             Base.metadata.drop_all(bind=self.__engine)
+>>>>>>> ee6bc2a7072293464cf3777b828863e8745d746c
 
     def all(self, cls=None):
         """ """
@@ -68,6 +94,10 @@ class DBStorage:
     def delete(self, obj=None):
         """delete current database"""
         if obj:
+<<<<<<< HEAD
+            self.__name.delete(obj)
+        self.save()
+=======
             self.__session.delete(obj)
 
     def reload(self):
@@ -80,3 +110,4 @@ class DBStorage:
     def close(self):
         """ close session """
         self.__session.close()
+>>>>>>> ee6bc2a7072293464cf3777b828863e8745d746c

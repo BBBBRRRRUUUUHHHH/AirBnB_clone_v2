@@ -6,6 +6,33 @@ from models.base_model import Base, BaseModel
 from models.city import City
 import models
 
+<<<<<<< HEAD
+storage_type = getenv("HBNB_TYPE_STORAGE")
+
+class State(BaseModel, Base):
+    """ State class """
+
+    __tablename__ = 'states'
+    if storage_type == 'db':
+        name = Column(String(128), nullable=False)
+        cities = relationship('City', backref='state')
+    else:
+        name = ""
+
+
+        @property
+        def cities(self):
+            """cities method"""
+            from models import storage
+            from models.city import City
+
+            cities_list = []
+            citiesAll = storage.all(City)
+            for city in citiesAll.values():
+                if city.state_id == self.id:
+                    cities_list.append(city)
+            return cities_list
+=======
 
 class State(BaseModel, Base):
     """ class of state"""
@@ -22,3 +49,4 @@ class State(BaseModel, Base):
             if self.id == city.state_id:
                 res.append(city)
         return res
+>>>>>>> ee6bc2a7072293464cf3777b828863e8745d746c
