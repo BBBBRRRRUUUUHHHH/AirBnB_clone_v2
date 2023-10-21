@@ -1,54 +1,37 @@
 #!/usr/bin/python3
-"""
-Write a Fabric script (based on the file 1-pack_web_static.py)
-that distributes an archive to your web servers, using the
-function do_deploy
-"""
-
-from datetime import datetime
+"""Fabric script that generates a .tgz archive"""
 from fabric.api import *
 import os
+from datetime import datetime
 
-env.hosts = ["34.207.156.203", "18.206.233.120"]
-env.user = "ubuntu"
-
+env.hosts = ['52.86.110.104', '34.204.95.100']
+env.user = 'ubuntu'
 
 def do_pack():
     """
-        return the archive path if archive has generated correctly.
+    Generates a .tgz archive from the
+    contents of the web_static folder
+    Returns:
+    Path to the archive if successful, None otherwise
     """
-
-    local("mkdir -p versions")
-    date = datetime.now().strftime("%Y%m%d%H%M%S")
-    archived_f_path = "versions/web_static_{}.tgz".format(date)
-    t_gzip_archive = local("tar -cvzf {} web_static".format(archived_f_path))
-
-    if t_gzip_archive.succeeded:
-        return archived_f_path
-    else:
-        return None
-
+    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+    mkdir = "mkdir -p versions"
+    path = "versions/web_static_{}.tgz".format(timestamp)
+    print('Packing web_static to {}'.format(path))
+    if local('{} && tar -cvzf {} web_static'.format(mkdir, path)).succeeded:
+        return path
+    return None
 
 def do_deploy(archive_path):
     """
-        Distribute archive.
+    Distribute an archive to web servers
+    Args:
+        archive_path: Path to the archive file on the local machine
+    Returns:
+        True if all operations are successful, otherwise False
     """
-    if os.path.exists(archive_path):
-        archived_file = archive_path[9:]
-        newest_version = "/data/web_static/releases/" + archived_file[:-4]
-        archived_file = "/tmp/" + archived_file
-        put(archive_path, "/tmp/")
-        run("sudo mkdir -p {}".format(newest_version))
-        run("sudo tar -xzf {} -C {}/".format(archived_file,
-                                             newest_version))
-        run("sudo rm {}".format(archived_file))
-        run("sudo mv {}/web_static/* {}".format(newest_version,
-                                                newest_version))
-        run("sudo rm -rf {}/web_static".format(newest_version))
-        run("sudo rm -rf /data/web_static/current")
-        run("sudo ln -s {} /data/web_static/current".format(newest_version))
 
-        print("New version deployed!")
-        return True
+    try:
+        if not od.path.exists(archive_path):
+            return False
 
-    return False
