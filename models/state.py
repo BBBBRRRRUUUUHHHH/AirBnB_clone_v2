@@ -1,49 +1,31 @@
 #!/usr/bin/python3
-""" module of state """
+"""Defines the State class."""
+import models
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
-from models.base_model import Base, BaseModel
+from models.base_model import BaseModel, Base
 from models.city import City
-import models
+from os import getenv
 
-storage_type = getenv("HBNB_TYPE_STORAGE")
 
 class State(BaseModel, Base):
-    """ State class """
-
-    __tablename__ = 'states'
-    if storage_type == 'db':
-        name = Column(String(128), nullable=False)
-        cities = relationship('City', backref='state')
-    else:
-        name = ""
-
-
-        @property
-        def cities(self):
-            """cities method"""
-            from models import storage
-            from models.city import City
-
-            cities_list = []
-            citiesAll = storage.all(City)
-            for city in citiesAll.values():
-                if city.state_id == self.id:
-                    cities_list.append(city)
-            return cities_list
-
-class State(BaseModel, Base):
-    """ class of state"""
+    """Represents a state for a MySQL database."""
     __tablename__ = "states"
     name = Column(String(128), nullable=False)
-    cities = relationship('City', backref='state', cascade='all, delete')
 
-    @property
-    def cities(self):
-        """cities list """
-        records = models.storage.all()
-        res = []
-        for city in records.values():
-            if self.id == city.state_id:
-                res.append(city)
-        return res
+    if getenv("HBNB_TYPE_STORAGE") == "db":
+        cities = relationship("City", backref="state", cascade="all, delete")
+    else:
+        @property
+        def cities(self):
+            """Get a list of City instances with
+                state_id equals to the current State.id.
+
+            This is a getter attribute for FileStorage
+                relationship between State and City.
+            """
+            city_list = []
+            for city in models.storage.all(City).values():
+                if city.state_id == self.id:
+                    city_list.append(city)
+            return city_list
