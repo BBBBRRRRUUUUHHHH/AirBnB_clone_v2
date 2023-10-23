@@ -15,6 +15,7 @@ class BaseModel:
     id = Column(String(60), nullable=False, primary_key=True, unique=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow())
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow())
+    
 
     def __init__(self, *args, **kwargs):
         """
@@ -45,15 +46,20 @@ class BaseModel:
         storage.save()
 
     def to_dict(self):
-        """convert instance to dict"""
+        """Convert instance to dict"""
         dictionary = {}
         dictionary.update(self.__dict__)
         dictionary.update({'__class__':
-                          (str(type(self)).split('.')[-1]).split('\'')[0]})
-        dictionary['created_at'] = self.created_at.isoformat()
-        dictionary['updated_at'] = self.updated_at.isoformat()
+                        (str(type(self)).split('.')[-1]).split('\'')[0]})
+        if hasattr(self, 'created_at') and self.created_at:
+            dictionary['created_at'] = self.created_at.isoformat()
+    
+        if hasattr(self, 'updated_at') and self.updated_at:
+            dictionary['updated_at'] = self.updated_at.isoformat()
+
         if "_sa_instance_state" in dictionary.keys():
             del dictionary["_sa_instance_state"]
+    
         return dictionary
 
     def delete(self):
